@@ -1,16 +1,16 @@
 {
-    "name": "laravel/breeze",
-    "description": "Minimal Laravel authentication scaffolding with Blade and Tailwind.",
-    "keywords": ["laravel", "auth"],
+    "name": "stephenjude/breeze-api",
+    "description": "Minimal Laravel API authentication scaffolding with Sanctum.",
+    "keywords": ["laravel", "auth", "api"],
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/laravel/breeze/issues",
-        "source": "https://github.com/laravel/breeze"
+        "issues": "https://github.com/stephenjude/breeze-api/issues",
+        "source": "https://github.com/stephenjude/breeze-api"
     },
     "authors": [
         {
-            "name": "Taylor Otwell",
-            "email": "taylor@laravel.com"
+            "name": "Stephen Jude",
+            "email": "hello@stephenjude.me"
         }
     ],
     "require": {
@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Laravel\\Breeze\\": "src/"
+            "Laravel\\BreezeApi\\": "src/"
         }
     },
     "extra": {
@@ -30,7 +30,7 @@
         },
         "laravel": {
             "providers": [
-                "Laravel\\Breeze\\BreezeServiceProvider"
+                "Laravel\\BreezeApi\\BreezeApiServiceProvider"
             ]
         }
     },
