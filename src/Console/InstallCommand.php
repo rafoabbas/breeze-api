@@ -4,6 +4,7 @@ namespace Laravel\BreezeApi\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 
@@ -43,18 +44,18 @@ class InstallCommand extends Command
         (new Filesystem)->ensureDirectoryExists(app_path('Http/Requests/Api/Auth'));
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Http/Requests/Api/Auth', app_path('Http/Requests/Api/Auth'));
 
-        // Handling Api Exceptions
+        // Handling Api Exceptions with Laravel Responder
         $this->replaceInFile('Illuminate\Foundation\Exceptions\Handler', 'Flugg\Responder\Exceptions\Handler', app_path('Exceptions/Handler.php'));
 
-        // Api Documentation Database
-        $this->configureApiDocumentationDatabase();
+        // Configure Enlighten
+        $this->configureEnlighten();
 
         // Tests...
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/tests/Api', base_path('tests/Api/Auth'));
 
         // Routes...
         copy(__DIR__ . '/../../stubs/default/routes/web.php', base_path('routes/web.php'));
-        copy(__DIR__ . '/../../stubs/default/routes/auth.php', base_path('routes/auth.php'));
+        copy(__DIR__ . '/../../stubs/default/routes/api.php', base_path('routes/api.php'));
 
         $this->info('Breeze Api scaffolding installed successfully.');
     }
@@ -115,7 +116,7 @@ class InstallCommand extends Command
             });
     }
 
-    protected function configureApiDocumentationDatabase()
+    protected function configureEnlighten()
     {
         $sqliteDatabaseConfig = `'sqlite' => [
             'driver' => 'sqlite',
@@ -134,8 +135,9 @@ class InstallCommand extends Command
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],`;
 
-        $this->replaceInFile($sqliteDatabaseConfig, $sqliteDatabaseConfig . $enlightenDatabaseConfig,
-            config_path('database.php'));
+        $this->replaceInFile($sqliteDatabaseConfig, $sqliteDatabaseConfig . $enlightenDatabaseConfig, config_path('database.php'));
+
+        Artisan::call('enlighten:install');
     }
 
     /**

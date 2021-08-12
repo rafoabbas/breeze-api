@@ -32,7 +32,7 @@ class UserTransformer extends Transformer
     {
         return [
             'id' => $user->id,
-            'api_token' => $user->createToken('token-name', ['server:update'])->plainTextToken,
+            'api_token' => $user->createToken('api')->plainTextToken,
             'name' => $user->name,
             'email' => $user->email,
             'email_verified_at' => $user->email_verified_at,
