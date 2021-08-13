@@ -1,30 +1,39 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Request;
+use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Class VerifyEmailController
+ * @package App\Http\Controllers\Api\Auth
+ */
 class VerifyEmailController extends Controller
 {
     /**
-     * Mark the authenticated user's email address as verified.
-     *
-     * @param  \Illuminate\Foundation\Auth\EmailVerificationRequest  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param $id
+     * @param $hash
+     * @return \Flugg\Responder\Http\Responses\SuccessResponseBuilder|string
      */
-    public function __invoke(EmailVerificationRequest $request)
+    public function __invoke($id, $hash)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(RouteServiceProvider::HOME.'?verified=1');
+        $user = User::findOrFail($id);
+
+        abort_unless($this->isHashValid($user, $hash), Response::HTTP_BAD_REQUEST, 'Invalid verification data');
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('auth.action.success')->with('status', __('Your email has already been verified.'));
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
         }
 
-        return redirect()->intended(RouteServiceProvider::HOME.'?verified=1');
+        return redirect()->route('auth.action.success')->with('status', __('Your email has been successfully verified!'));
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -11,7 +11,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class LoginController extends Controller
 {
-
+    /**
+     * @param Request $request
+     * @return \Flugg\Responder\Http\Responses\SuccessResponseBuilder
+     * @throws ValidationException
+     */
     public function login(Request $request)
     {
         $this->validateLoginData($request);
@@ -27,6 +31,10 @@ class LoginController extends Controller
         return responder()->success($user, UserTransformer::class);
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout(Request $request)
     {
         $request->user()->tokens()->where('token', $request->api_token)->delete();
@@ -34,6 +42,10 @@ class LoginController extends Controller
         return responder()->success(['message' => 'You have successfully logout!'])->respond(Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * @param Request $request
+     * @return mixed
+     */
     protected function validateLoginData(Request $request)
     {
         return $request->validate([

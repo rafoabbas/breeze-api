@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,4 +18,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-require __DIR__ . '/api.php';
+Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke']);
+
+Route::view('/successful-auth-action', 'auth.success-action')->name('auth.action.success');
+
