@@ -18,7 +18,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke']);
+Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])->name('verification.verify');
 
 Route::view('/successful-auth-action', 'auth.success-action')->name('auth.action.success');
 

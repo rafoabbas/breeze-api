@@ -34,8 +34,8 @@ class InstallCommand extends Command
         // Install required packages (Sanctum, Laravel Responder, Enlighten & Api Test Helper)
         $this->requireComposerPackages(
             'laravel/sanctum:^2.6',
-            'flugg/laravel-responder:^3.1',
-            'styde/enlighten:^0.7',
+            'flugger/laravel-responder:^3.1.3',
+            'styde/enlighten:^0.7.1',
             'stephenjude/api-test-helper:^1.0'
         );
 
@@ -47,10 +47,10 @@ class InstallCommand extends Command
         (new Filesystem)->ensureDirectoryExists(app_path('Transformers'));
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Transformers', app_path('Transformers'));
 
-        // Handling Api Exceptions with Laravel Responder
+        // Handling Api Exceptions with Laravel Responder...
         $this->replaceInFile('Illuminate\Foundation\Exceptions\Handler', 'Flugg\Responder\Exceptions\Handler', app_path('Exceptions/Handler.php'));
 
-        // Configure Enlighten
+        // Configure Enlighten...
         $this->configureEnlighten();
 
         // Views...
@@ -64,7 +64,9 @@ class InstallCommand extends Command
 
         // Tests...
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/tests/Api', base_path('tests/Api/Auth'));
-        $this->configurePHPUnit();
+
+        // PHPUnit...
+        copy(__DIR__ . '/../../stubs/default/phpunit.xml', base_path('phpunit.xml'));
 
         // Routes...
         copy(__DIR__ . '/../../stubs/default/routes/web.php', base_path('routes/web.php'));
@@ -119,8 +121,11 @@ class InstallCommand extends Command
 
         $command = array_merge(
             $command ?? ['composer', 'require'],
-            is_array($packages) ? $packages : func_get_args()
+            is_array($packages) ? $packages : func_get_args(),
+            ['--with-all-dependencies']
         );
+
+        logger($command);
 
         (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
             ->setTimeout(null)
@@ -131,43 +136,11 @@ class InstallCommand extends Command
 
     protected function configureEnlighten()
     {
-        $sqliteDatabaseConfig = `'sqlite' => [
-            'driver' => 'sqlite',
-            'url' => env('DATABASE_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
-            'prefix' => '',
-            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-        ],`;
-
-        $enlightenDatabaseConfig = `
-        'enlighten' => [
-            'driver' => 'sqlite',
-            'url' => env('DATABASE_URL'),
-            'database' => database_path('database.sqlite'),
-            'prefix' => '',
-            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-        ],`;
-
-        $this->replaceInFile($sqliteDatabaseConfig, $sqliteDatabaseConfig . $enlightenDatabaseConfig, config_path('database.php'));
+        copy(__DIR__ . '/../../stubs/default/config/database.php', base_path('config/database.php'));
 
         copy(__DIR__ . '/../../stubs/default/database/database.sqlite', base_path('database/database.sqlite'));
 
         Artisan::call('enlighten:install');
-    }
-
-    protected function configurePHPUnit()
-    {
-        $featureTestSuit = `
-            <testsuite name="Feature">
-                <directory suffix="Test.php">./tests/Feature</directory>
-            </testsuite>`;
-
-        $apiTestSuit = `
-            <testsuite name="Feature">
-                <directory suffix="Test.php">./tests/Feature</directory>
-            </testsuite>`;
-
-        $this->replaceInFile($featureTestSuit, $featureTestSuit . $apiTestSuit, base_path('phpunit.xml'));
     }
 
     /**

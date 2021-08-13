@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class RegisteredUserController
@@ -39,6 +40,6 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        return responder()->success($user, UserTransformer::class);
+        return responder()->success($user, UserTransformer::class)->respond(Response::HTTP_CREATED);
     }
 }
