@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Notification;
 use Stephenjude\ApiTestHelper\WithApiHelper;
 use Tests\TestCase;
 
-class AuthenticationTest extends TestCase
+class UserAuthenticationTest extends TestCase
 {
     use RefreshDatabase;
     use WithApiHelper;
@@ -42,7 +42,7 @@ class AuthenticationTest extends TestCase
 
         $this->response = $this->postJson('api/login', [
             'email' => $user->email,
-            'password' => $this->password,
+            'password' => 'password',
         ]);
 
         $this->response->assertOk();
@@ -56,7 +56,9 @@ class AuthenticationTest extends TestCase
      */
     public function test_resend_email_verification_link()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
 
         $response = $this->postJson('api/resend-verify-link', [
             'email' => $user->email,

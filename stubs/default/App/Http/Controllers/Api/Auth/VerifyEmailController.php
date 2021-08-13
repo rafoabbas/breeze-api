@@ -36,4 +36,13 @@ class VerifyEmailController extends Controller
 
         return redirect()->route('auth.action.success')->with('status', __('Your email has been successfully verified!'));
     }
+
+    protected function isHashValid($user, $hash)
+    {
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return false;
+        }
+
+        return true;
+    }
 }

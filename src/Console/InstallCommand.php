@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 
+/**
+ * Class InstallCommand
+ * @package Laravel\BreezeApi\Console
+ */
 class InstallCommand extends Command
 {
     /**
@@ -47,6 +51,14 @@ class InstallCommand extends Command
         (new Filesystem)->ensureDirectoryExists(app_path('Transformers'));
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Transformers', app_path('Transformers'));
 
+        // Models...
+        (new Filesystem)->ensureDirectoryExists(app_path('Models'));
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Models', app_path('Models'));
+
+        // Documentation...
+        (new Filesystem)->ensureDirectoryExists(base_path('public'));
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/public', base_path('public'));
+
         // Handling Api Exceptions with Laravel Responder...
         $this->replaceInFile('Illuminate\Foundation\Exceptions\Handler', 'Flugg\Responder\Exceptions\Handler', app_path('Exceptions/Handler.php'));
 
@@ -62,6 +74,10 @@ class InstallCommand extends Command
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/resources/views/layouts', resource_path('views/layouts'));
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/resources/views/components', resource_path('views/components'));
 
+        // Components...
+        (new Filesystem)->ensureDirectoryExists(app_path('View/Components'));
+        (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/default/App/View/Components', app_path('View/Components'));
+
         // Tests...
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/tests/Api', base_path('tests/Api/Auth'));
 
@@ -72,7 +88,30 @@ class InstallCommand extends Command
         copy(__DIR__ . '/../../stubs/default/routes/web.php', base_path('routes/web.php'));
         copy(__DIR__ . '/../../stubs/default/routes/api.php', base_path('routes/api.php'));
 
+        // NPM Packages...
+        $this->updateNodePackages(function ($packages) {
+            return [
+                    '@tailwindcss/forms' => '^0.2.1',
+                    'alpinejs' => '^2.7.3',
+                    'autoprefixer' => '^10.1.0',
+                    'postcss' => '^8.2.1',
+                    'postcss-import' => '^12.0.1',
+                    'tailwindcss' => '^2.0.2',
+                ] + $packages;
+        });
+
+        // Tailwind / Webpack...
+        copy(__DIR__.'/../../stubs/default/tailwind.config.js', base_path('tailwind.config.js'));
+        copy(__DIR__.'/../../stubs/default/webpack.mix.js', base_path('webpack.mix.js'));
+        copy(__DIR__.'/../../stubs/default/resources/css/app.css', resource_path('css/app.css'));
+        copy(__DIR__.'/../../stubs/default/resources/js/app.js', resource_path('js/app.js'));
+
         $this->info('Breeze Api scaffolding installed successfully.');
+        $this->comment('TODO: ');
+        $this->comment('Execute the "npm install && npm run dev" command to build your assets.');
+        $this->comment('Execute the "php artisan enlighten:migrate" command to prepare your database for testing.');
+        $this->comment('Execute the "php artisan enlighten" command to run tests.');
+        $this->comment('Execute the "php artisan enlighten:export" command to export documentation.');
     }
 
     /**
@@ -134,9 +173,45 @@ class InstallCommand extends Command
             });
     }
 
+    /**
+     * Update the "package.json" file.
+     *
+     * @param  callable  $callback
+     * @param  bool  $dev
+     * @return void
+     */
+    protected static function updateNodePackages(callable $callback, $dev = true)
+    {
+        if (! file_exists(base_path('package.json'))) {
+            return;
+        }
+
+        $configurationKey = $dev ? 'devDependencies' : 'dependencies';
+
+        $packages = json_decode(file_get_contents(base_path('package.json')), true);
+
+        $packages[$configurationKey] = $callback(
+            array_key_exists($configurationKey, $packages) ? $packages[$configurationKey] : [],
+            $configurationKey
+        );
+
+        ksort($packages[$configurationKey]);
+
+        file_put_contents(
+            base_path('package.json'),
+            json_encode($packages, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT).PHP_EOL
+        );
+    }
+
+    /**
+     * Configure Enlighten package
+     * return void
+     */
     protected function configureEnlighten()
     {
         copy(__DIR__ . '/../../stubs/default/config/database.php', base_path('config/database.php'));
+
+        copy(__DIR__ . '/../../stubs/default/config/enlighten.php', base_path('config/enlighten.php'));
 
         copy(__DIR__ . '/../../stubs/default/database/database.sqlite', base_path('database/database.sqlite'));
 

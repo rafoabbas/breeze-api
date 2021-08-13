@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Transformers\UserTransformer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -29,17 +30,6 @@ class LoginController extends Controller
         }
 
         return responder()->success($user, UserTransformer::class);
-    }
-
-    /**
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function logout(Request $request)
-    {
-        $request->user()->tokens()->where('token', $request->api_token)->delete();
-
-        return responder()->success(['message' => 'You have successfully logout!'])->respond(Response::HTTP_NO_CONTENT);
     }
 
     /**

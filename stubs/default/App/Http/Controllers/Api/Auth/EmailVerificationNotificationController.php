@@ -23,14 +23,14 @@ class EmailVerificationNotificationController extends Controller
             'email' => 'required|email|exists:users,email',
         ]);
 
-        $user = User::where('email', $request->input('email'));
+        $user = User::where('email', $request->input('email'))->first();
 
         if ($user->hasVerifiedEmail()) {
-            return responder()->success(['message' => _('Your email has already been verified.'),]);
+            return responder()->success(['message' => __('Your email has already been verified'),]);
         }
 
         $user->sendEmailVerificationNotification();
 
-        return responder()->success(['message' => _('Email verification link sent')]);
+        return responder()->success(['message' => __('Email verification link sent')]);
     }
 }
