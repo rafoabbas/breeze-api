@@ -32,10 +32,12 @@ class InstallCommand extends Command
     public function handle()
     {
         // Install required packages (Sanctum, Laravel Responder, Enlighten & Api Test Helper)
-        $this->requireComposerPackages('laravel/sanctum:^2.6');
-        $this->requireComposerPackages('flugg/laravel-responder');
-        $this->requireComposerPackages('styde/enlighten --dev');
-        $this->requireComposerPackages('stephenjude/api-test-helper --dev');
+        $this->requireComposerPackages(
+            'laravel/sanctum:^2.6',
+            'flugg/laravel-responder:^3.1',
+            'styde/enlighten:^0.7',
+            'stephenjude/api-test-helper:^1.0'
+        );
 
         // Controllers...
         (new Filesystem)->ensureDirectoryExists(app_path('Http/Controllers/Api/Auth'));
