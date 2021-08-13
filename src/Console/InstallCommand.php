@@ -41,9 +41,9 @@ class InstallCommand extends Command
         (new Filesystem)->ensureDirectoryExists(app_path('Http/Controllers/Api/Auth'));
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Http/Controllers/Api/Auth', app_path('Http/Controllers/Api/Auth'));
 
-        // Requests...
-        (new Filesystem)->ensureDirectoryExists(app_path('Http/Requests/Api/Auth'));
-        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Http/Requests/Api/Auth', app_path('Http/Requests/Api/Auth'));
+        // Transformers...
+        (new Filesystem)->ensureDirectoryExists(app_path('Transformers'));
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/Transformers', app_path('Transformers'));
 
         // Handling Api Exceptions with Laravel Responder
         $this->replaceInFile('Illuminate\Foundation\Exceptions\Handler', 'Flugg\Responder\Exceptions\Handler', app_path('Exceptions/Handler.php'));
@@ -51,8 +51,18 @@ class InstallCommand extends Command
         // Configure Enlighten
         $this->configureEnlighten();
 
+        // Views...
+        (new Filesystem)->ensureDirectoryExists(resource_path('views/auth'));
+        (new Filesystem)->ensureDirectoryExists(resource_path('views/layouts'));
+        (new Filesystem)->ensureDirectoryExists(resource_path('views/components'));
+
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/resources/views/auth', resource_path('views/auth'));
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/resources/views/layouts', resource_path('views/layouts'));
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/resources/views/components', resource_path('views/components'));
+
         // Tests...
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/tests/Api', base_path('tests/Api/Auth'));
+        $this->configurePHPUnit();
 
         // Routes...
         copy(__DIR__ . '/../../stubs/default/routes/web.php', base_path('routes/web.php'));
@@ -138,7 +148,24 @@ class InstallCommand extends Command
 
         $this->replaceInFile($sqliteDatabaseConfig, $sqliteDatabaseConfig . $enlightenDatabaseConfig, config_path('database.php'));
 
+        copy(__DIR__ . '/../../stubs/default/database/database.sqlite', base_path('database/database.sqlite'));
+
         Artisan::call('enlighten:install');
+    }
+
+    protected function configurePHPUnit()
+    {
+        $featureTestSuit = `
+            <testsuite name="Feature">
+                <directory suffix="Test.php">./tests/Feature</directory>
+            </testsuite>`;
+
+        $apiTestSuit = `
+            <testsuite name="Feature">
+                <directory suffix="Test.php">./tests/Feature</directory>
+            </testsuite>`;
+
+        $this->replaceInFile($featureTestSuit, $featureTestSuit . $apiTestSuit, base_path('phpunit.xml'));
     }
 
     /**
