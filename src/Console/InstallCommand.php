@@ -5,7 +5,6 @@ namespace Laravel\BreezeApi\Console;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 
 /**
@@ -76,10 +75,11 @@ class InstallCommand extends Command
 
         // Components...
         (new Filesystem)->ensureDirectoryExists(app_path('View/Components'));
-        (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/default/App/View/Components', app_path('View/Components'));
+        (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/App/View/Components', app_path('View/Components'));
 
         // Tests...
         (new Filesystem)->copyDirectory(__DIR__ . '/../../stubs/default/tests/Api', base_path('tests/Api/Auth'));
+        $this->replaceInFile('assertStatus(200)', "assertRedirect('/docs/index.html')", base_path('tests/Feature/ExampleTest.php'));
 
         // PHPUnit...
         copy(__DIR__ . '/../../stubs/default/phpunit.xml', base_path('phpunit.xml'));
@@ -101,47 +101,13 @@ class InstallCommand extends Command
         });
 
         // Tailwind / Webpack...
-        copy(__DIR__.'/../../stubs/default/tailwind.config.js', base_path('tailwind.config.js'));
-        copy(__DIR__.'/../../stubs/default/webpack.mix.js', base_path('webpack.mix.js'));
-        copy(__DIR__.'/../../stubs/default/resources/css/app.css', resource_path('css/app.css'));
-        copy(__DIR__.'/../../stubs/default/resources/js/app.js', resource_path('js/app.js'));
+        copy(__DIR__ . '/../../stubs/default/tailwind.config.js', base_path('tailwind.config.js'));
+        copy(__DIR__ . '/../../stubs/default/webpack.mix.js', base_path('webpack.mix.js'));
+        copy(__DIR__ . '/../../stubs/default/resources/css/app.css', resource_path('css/app.css'));
+        copy(__DIR__ . '/../../stubs/default/resources/js/app.js', resource_path('js/app.js'));
 
         $this->info('Breeze Api scaffolding installed successfully.');
-        $this->comment('TODO: ');
         $this->comment('Execute the "npm install && npm run dev" command to build your assets.');
-        $this->comment('Execute the "php artisan enlighten:migrate" command to prepare your database for testing.');
-        $this->comment('Execute the "php artisan enlighten" command to run tests.');
-        $this->comment('Execute the "php artisan enlighten:export" command to export documentation.');
-    }
-
-    /**
-     * Install the middleware to a group in the application Http Kernel.
-     *
-     * @param string $after
-     * @param string $name
-     * @param string $group
-     * @return void
-     */
-    protected function installMiddlewareAfter($after, $name, $group = 'web')
-    {
-        $httpKernel = file_get_contents(app_path('Http/Kernel.php'));
-
-        $middlewareGroups = Str::before(Str::after($httpKernel, '$middlewareGroups = ['), '];');
-        $middlewareGroup = Str::before(Str::after($middlewareGroups, "'$group' => ["), '],');
-
-        if (!Str::contains($middlewareGroup, $name)) {
-            $modifiedMiddlewareGroup = str_replace(
-                $after . ',',
-                $after . ',' . PHP_EOL . '            ' . $name . ',',
-                $middlewareGroup,
-            );
-
-            file_put_contents(app_path('Http/Kernel.php'), str_replace(
-                $middlewareGroups,
-                str_replace($middlewareGroup, $modifiedMiddlewareGroup, $middlewareGroups),
-                $httpKernel
-            ));
-        }
     }
 
     /**
@@ -160,11 +126,8 @@ class InstallCommand extends Command
 
         $command = array_merge(
             $command ?? ['composer', 'require'],
-            is_array($packages) ? $packages : func_get_args(),
-            ['--with-all-dependencies']
+            is_array($packages) ? $packages : func_get_args()
         );
-
-        logger($command);
 
         (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
             ->setTimeout(null)
@@ -176,13 +139,13 @@ class InstallCommand extends Command
     /**
      * Update the "package.json" file.
      *
-     * @param  callable  $callback
-     * @param  bool  $dev
+     * @param callable $callback
+     * @param bool $dev
      * @return void
      */
     protected static function updateNodePackages(callable $callback, $dev = true)
     {
-        if (! file_exists(base_path('package.json'))) {
+        if (!file_exists(base_path('package.json'))) {
             return;
         }
 
@@ -199,13 +162,13 @@ class InstallCommand extends Command
 
         file_put_contents(
             base_path('package.json'),
-            json_encode($packages, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT).PHP_EOL
+            json_encode($packages, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . PHP_EOL
         );
     }
 
     /**
      * Configure Enlighten package
-     * return void
+     * @return void
      */
     protected function configureEnlighten()
     {

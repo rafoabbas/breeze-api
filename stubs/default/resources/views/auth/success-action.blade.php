@@ -6,10 +6,8 @@
             </a>
         </x-slot>
 
-        @if (session('status'))
-            <div {{ $attributes->merge(['class' => 'font-medium text-sm text-green-600']) }}>
-                {{ session('status') }}
-            </div>
-        @endif
+        <!-- Session Status -->
+        <x-auth-session-status class="mb-4" :status="session('status')" />
+
     </x-auth-card>
 </x-guest-layout>
